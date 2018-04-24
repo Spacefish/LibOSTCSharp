@@ -22,6 +22,19 @@ namespace OSTCDiveReader
     {
         static void Main(string[] args)
         {
+            FileStream fs = File.OpenRead("dive_headers.bin");
+            OSTCBinaryReader br = new OSTCBinaryReader(fs);
+            List<OSTCDiveHeader> headers = new List<OSTCDiveHeader>();
+            while (true)
+            {
+                OSTCDiveHeader header = br.ReadDiveHeader();
+                if (header != null)
+                    headers.Add(header);
+                else
+                    break;
+            }
+            Console.ReadKey();
+            return;
             SerialPort sp = new SerialPort("COM3");
             sp.BaudRate = 115200;
             sp.ReadTimeout = 3000;

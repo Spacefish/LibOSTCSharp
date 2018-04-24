@@ -13,6 +13,11 @@ namespace OSTCDiveReader
         {
         }
 
+        public OSTCDiveHeader ReadDiveHeader()
+        {
+            return OSTCDiveHeader.FromBinary(this);
+        }
+
         /// <summary>
         /// reads a 24bit Address
         /// </summary>
@@ -51,6 +56,29 @@ namespace OSTCDiveReader
         internal OSTCGasInfo ReadGas32()
         {
             return OSTCGasInfo.FromBinary(this);
+        }
+
+        internal OSTCSetpointInfo ReadSetpoint16()
+        {
+            return OSTCSetpointInfo.FromBinary(this);
+        }
+
+        internal Version ReadFWVersion()
+        {
+            return new Version(this.ReadByte(), this.ReadByte());
+        }
+    }
+
+    public class OSTCSetpointInfo
+    {
+        internal static OSTCSetpointInfo FromBinary(OSTCBinaryReader br)
+        {
+            br.ReadUInt16();
+            // TODO
+            return new OSTCSetpointInfo
+            {
+
+            };
         }
     }
 
