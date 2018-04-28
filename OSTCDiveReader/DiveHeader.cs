@@ -19,7 +19,7 @@ namespace OSTCDiveReader
                 if (a == 0xFF && b == 0xFF)
                     return null;
                 if (a != 0xFA || b != 0xFA)
-                    throw new InvalidDataException("Expected 0xFAFA as dive header start but got something else!");
+                    throw new InvalidDataException("Expected 0xFAFA as dive header start but got " + a.ToString("X2") + b.ToString("X2"));
             }
             catch(EndOfStreamException)
             {
@@ -32,7 +32,7 @@ namespace OSTCDiveReader
                 DataStartAddress = br.ReadUInt24(),
                 DataStopAddress = br.ReadUInt24(),
                 ProfileVersion = (LogbookProfileVersion)br.ReadByte(),
-                DataLength = br.ReadUInt24(),
+                ProfileDataLength = br.ReadUInt24(),
                 Date = br.ReadDate(),
                 WaterPressureMbarMax = br.ReadUInt16(),
                 DiveTime = br.ReadTimeSpan24(),
@@ -95,7 +95,7 @@ namespace OSTCDiveReader
         public uint DataStartAddress { get; private set; }
         public uint DataStopAddress { get; private set; }
         public LogbookProfileVersion ProfileVersion { get; private set; }
-        public uint DataLength { get; private set; }
+        public uint ProfileDataLength { get; private set; }
         public DateTime Date { get; private set; }
         /// <summary>
         /// The relativ water pressure as measured from the surface adjusted by gravity (0.98) and salinity factor. (relative_pressure_in_mbar * 102 / (salinity_percent+100))

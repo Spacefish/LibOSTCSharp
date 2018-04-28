@@ -66,7 +66,8 @@ namespace OSTCDiveReader
                 if (!(sp.ReadByte() == OSTCReplys.READY_FOR_COMMAND))
                     throw new InvalidDataException("Expected 0x4D");
 
-                GetFullHeaders();
+                for(int c = 0; c <= 20; c++)
+                    GetDiveProfile((byte)c);
 
             }
             catch(Exception ex)
@@ -91,9 +92,40 @@ namespace OSTCDiveReader
             Console.ReadLine();
         }
 
-        private static void GetDiveProfile(byte profileNumber)
+        private static void GetDiveProfile(byte tocIndex)
         {
+            WriteByte(sp, OSTCCommands.GET_DIVE_PROFILE);
+            if (!(sp.ReadByte() == OSTCCommands.GET_DIVE_PROFILE))
+                throw new InvalidDataException("Expected " + OSTCCommands.GET_DIVE_PROFILE.ToString("X2"));
 
+            WriteByte(sp, tocIndex);
+
+            byte[] diveHeaderBuffer = new byte[256];
+            int bytesLeft = 256;
+            do
+            {
+                int bytesRead = sp.Read(diveHeaderBuffer, (int)(256 - bytesLeft), bytesLeft);
+                bytesLeft -= bytesRead;
+                Console.WriteLine("got " + bytesRead.ToString() + " bytes " + bytesLeft.ToString() + " remaining!");
+            }
+            while (bytesLeft > 0);
+
+            OSTCBinaryReader reader = new OSTCBinaryReader(new MemoryStream(diveHeaderBuffer));
+            OSTCDiveHeader header = reader.ReadDiveHeader(tocIndex);
+
+
+            int bytesToRead = (int)header.ProfileDataLength - 2;
+            bytesLeft = bytesToRead;
+            byte[] buffer = new byte[bytesToRead];
+            do
+            {
+                int bytesRead = sp.Read(buffer, (int)(bytesToRead - bytesLeft), bytesLeft);
+                bytesLeft -= bytesRead;
+                Console.WriteLine("got " + bytesRead.ToString() + " bytes " + bytesLeft.ToString() + " remaining!");
+            }
+            while (bytesLeft > 0);
+
+            File.WriteAllBytes("dive_profile_" + tocIndex.ToString() + ".bin", buffer);
         }
 
         private static void GetFullHeaders()
