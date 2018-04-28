@@ -92,13 +92,19 @@ namespace OSTCDiveReader
         public LogbookProfileVersion ProfileVersion { get; private set; }
         public uint DataLength { get; private set; }
         public DateTime Date { get; private set; }
+        /// <summary>
+        /// The relativ water pressure as measured from the surface adjusted by gravity (0.98) and salinity factor. (relative_pressure_in_mbar * 102 / (salinity_percent+100))
+        /// </summary>
         public ushort WaterPressureMbarMax { get; private set; }
+
+        /// <summary>
+        /// Actual Depth caluclated for gravity of 0.98 and the set salinity factor
+        /// </summary>
         public double MaxDepthMeters
         {
             get
             {
-                // caluclated according to Note 1;
-                return WaterPressureMbarMax * 9.80665 / 1000.0;
+                return WaterPressureMbarMax / 100.0;
             }
         }
         public TimeSpan DiveTime { get; private set; }
@@ -122,8 +128,7 @@ namespace OSTCDiveReader
         {
             get
             {
-                // caluclated according to Note 1;
-                return WaterPressureMBarAverage * 9.80665 / 1000.0;
+                return WaterPressureMBarAverage / 100.0;
             }
         }
         public TimeSpan TotalDivetime { get; private set; }
