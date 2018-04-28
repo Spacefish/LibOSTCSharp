@@ -13,9 +13,9 @@ namespace OSTCDiveReader
         {
         }
 
-        public OSTCDiveHeader ReadDiveHeader()
+        public OSTCDiveHeader ReadDiveHeader(byte tocIndex)
         {
-            return OSTCDiveHeader.FromBinary(this);
+            return OSTCDiveHeader.FromBinary(this, tocIndex);
         }
 
         /// <summary>

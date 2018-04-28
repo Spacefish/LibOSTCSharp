@@ -9,7 +9,7 @@ namespace OSTCDiveReader
 {
     public class OSTCDiveHeader
     {
-        internal static OSTCDiveHeader FromBinary(OSTCBinaryReader br)
+        internal static OSTCDiveHeader FromBinary(OSTCBinaryReader br, byte tocIndex)
         {
             try
             {
@@ -28,6 +28,7 @@ namespace OSTCDiveReader
 
             var dh = new OSTCDiveHeader
             {
+                TOCIndex = tocIndex,
                 DataStartAddress = br.ReadUInt24(),
                 DataStopAddress = br.ReadUInt24(),
                 ProfileVersion = (LogbookProfileVersion)br.ReadByte(),
@@ -87,6 +88,10 @@ namespace OSTCDiveReader
             return dh;
         }
 
+        /// <summary>
+        /// Index of this Dive in the Table of contents, used to fetch the action profile!
+        /// </summary>
+        public byte TOCIndex { get; private set; }
         public uint DataStartAddress { get; private set; }
         public uint DataStopAddress { get; private set; }
         public LogbookProfileVersion ProfileVersion { get; private set; }

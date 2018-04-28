@@ -32,15 +32,17 @@ namespace OSTCDiveReader
     }
     class Program
     {
+        private static SerialPort sp;
+
         static void Main(string[] args)
         {
-            /*
             FileStream fs = File.OpenRead("dive_headers.bin");
             OSTCBinaryReader br = new OSTCBinaryReader(fs);
             List<OSTCDiveHeader> headers = new List<OSTCDiveHeader>();
+            byte tocIndex = 0;
             while (true)
             {
-                OSTCDiveHeader header = br.ReadDiveHeader();
+                OSTCDiveHeader header = br.ReadDiveHeader(tocIndex++);
                 if (header != null)
                     headers.Add(header);
                 else
@@ -49,59 +51,73 @@ namespace OSTCDiveReader
 
             Console.ReadKey();
             return;
-            */
 
-            SerialPort sp = new SerialPort("COM3");
+            sp = new SerialPort("COM3");
             sp.BaudRate = 115200;
             sp.ReadTimeout = 3000;
             sp.Open();
 
             try
             {
-                WriteByte(sp, 0xBB);
+                WriteByte(sp, OSTCCommands.START_COMMUNICATION);
 
                 if (!(sp.ReadByte() == OSTCCommands.START_COMMUNICATION))
                     throw new InvalidDataException("Expected 0xBB");
                 if (!(sp.ReadByte() == OSTCReplys.READY_FOR_COMMAND))
                     throw new InvalidDataException("Expected 0x4D");
 
-                WriteByte(sp, OSTCCommands.GET_HEADERS_FULL);
+                GetFullHeaders();
 
-                if (!(sp.ReadByte() == OSTCCommands.GET_HEADERS_FULL))
-                    throw new InvalidDataException("Expected " + OSTCCommands.GET_HEADERS_FULL.ToString("X2"));
-
-                byte[] diveHeadersBuffer = new byte[65536];
-
-                int bytesToRead = 65536;
-                do
-                {
-                    int bytesRead = sp.Read(diveHeadersBuffer, 65536 - bytesToRead, bytesToRead);
-                    bytesToRead -= bytesRead;
-                    Console.WriteLine("got " + bytesRead.ToString() + " bytes " + bytesToRead.ToString() + " remaining!");
-                }
-                while (bytesToRead > 0);
-
-                File.WriteAllBytes("dive_headers.bin", diveHeadersBuffer);
-
-                if (!(sp.ReadByte() == OSTCReplys.READY_FOR_COMMAND))
-                    throw new InvalidDataException("Expected 0x4D");
             }
             catch(Exception ex)
+            {
+                Console.WriteLine("Got exceptioN!: " + ex.ToString());
+            }
+            finally
             {
                 try
                 {
                     WriteByte(sp, OSTCCommands.CLOSE_COMMUNICATION);
                 }
-                catch(Exception eoce)
+                catch (Exception eoce)
                 {
                     Console.WriteLine("Exception while sending END OF COM" + eoce.ToString());
                 }
-                Console.WriteLine("Got exceptioN!: " + ex.ToString());
+
                 sp.Close();
             }
 
             Console.WriteLine("END!");
             Console.ReadLine();
+        }
+
+        private static void GetDiveProfile(byte profileNumber)
+        {
+
+        }
+
+        private static void GetFullHeaders()
+        {
+            WriteByte(sp, OSTCCommands.GET_HEADERS_FULL);
+
+            if (!(sp.ReadByte() == OSTCCommands.GET_HEADERS_FULL))
+                throw new InvalidDataException("Expected " + OSTCCommands.GET_HEADERS_FULL.ToString("X2"));
+
+            byte[] diveHeadersBuffer = new byte[65536];
+
+            int bytesToRead = 65536;
+            do
+            {
+                int bytesRead = sp.Read(diveHeadersBuffer, 65536 - bytesToRead, bytesToRead);
+                bytesToRead -= bytesRead;
+                Console.WriteLine("got " + bytesRead.ToString() + " bytes " + bytesToRead.ToString() + " remaining!");
+            }
+            while (bytesToRead > 0);
+
+            if (!(sp.ReadByte() == OSTCReplys.READY_FOR_COMMAND))
+                throw new InvalidDataException("Expected 0x4D");
+
+            File.WriteAllBytes("dive_headers.bin", diveHeadersBuffer);
         }
 
         private static void WriteByte(SerialPort sp, byte data)
