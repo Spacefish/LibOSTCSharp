@@ -11,7 +11,19 @@ namespace OSTCDiveReader
     public static class OSTCCommands
     {
         public static byte START_COMMUNICATION = 0xBB;
-        public static byte SEND_HEADERS = 0x61;
+        public static byte GET_HARDWARE_FEATURES = 0x60;
+        public static byte GET_HEADERS_FULL = 0x61;
+        public static byte GET_HEADERS_COMPACT = 0x6D;
+        public static byte SET_TIME_AND_DATE = 0x62;
+        public static byte SET_CUSTOM_TEXT = 0x63;
+        public static byte GET_DIVE_PROFILE = 0x66;
+        public static byte GET_VERSION_AND_IDENTITY = 0x69;
+        public static byte DISPLAY_TEXT = 0x6E;
+        public static byte GET_HARDWARE_DESCRIPTOR = 0x6A;
+        public static byte RESET_ALL_SETTINGS = 0x78;
+        public static byte SET_SETTING = 0x77;
+        public static byte GET_SETTING = 0x72;
+        public static byte CLOSE_COMMUNICATION = 0xFF;
     }
 
     public static class OSTCReplys
@@ -22,6 +34,7 @@ namespace OSTCDiveReader
     {
         static void Main(string[] args)
         {
+            /*
             FileStream fs = File.OpenRead("dive_headers.bin");
             OSTCBinaryReader br = new OSTCBinaryReader(fs);
             List<OSTCDiveHeader> headers = new List<OSTCDiveHeader>();
@@ -33,8 +46,11 @@ namespace OSTCDiveReader
                 else
                     break;
             }
+
             Console.ReadKey();
             return;
+            */
+
             SerialPort sp = new SerialPort("COM3");
             sp.BaudRate = 115200;
             sp.ReadTimeout = 3000;
@@ -49,10 +65,10 @@ namespace OSTCDiveReader
                 if (!(sp.ReadByte() == OSTCReplys.READY_FOR_COMMAND))
                     throw new InvalidDataException("Expected 0x4D");
 
-                WriteByte(sp, OSTCCommands.SEND_HEADERS);
+                WriteByte(sp, OSTCCommands.GET_HEADERS_FULL);
 
-                if (!(sp.ReadByte() == OSTCCommands.SEND_HEADERS))
-                    throw new InvalidDataException("Expected " + OSTCCommands.SEND_HEADERS.ToString("X2"));
+                if (!(sp.ReadByte() == OSTCCommands.GET_HEADERS_FULL))
+                    throw new InvalidDataException("Expected " + OSTCCommands.GET_HEADERS_FULL.ToString("X2"));
 
                 byte[] diveHeadersBuffer = new byte[65536];
 
@@ -74,7 +90,7 @@ namespace OSTCDiveReader
             {
                 try
                 {
-                    WriteByte(sp, 0xFF);
+                    WriteByte(sp, OSTCCommands.CLOSE_COMMUNICATION);
                 }
                 catch(Exception eoce)
                 {
