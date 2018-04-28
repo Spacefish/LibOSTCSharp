@@ -49,6 +49,9 @@ namespace OSTCDiveReader
                     break;
             }
 
+            string jsonHeader = Newtonsoft.Json.JsonConvert.SerializeObject(headers, Newtonsoft.Json.Formatting.Indented);
+            File.WriteAllText("headers.json", jsonHeader);
+
             Console.ReadKey();
             return;
 
